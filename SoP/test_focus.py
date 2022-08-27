@@ -7,7 +7,7 @@ import torch.nn as nn
 from torch.nn.functional import softmax
 import sys, os
 
-sys.path.append('../perchat_model')
+sys.path.append('../NP_focus')
 from model import MRSModel
 
 from torch.utils.data import Dataset, DataLoader
@@ -30,20 +30,19 @@ def main():
     logger.setLevel(level=logging.DEBUG)       
     
     """model loadings"""
-    data_type = args.data_type
     model = MRSModel(model_type).cuda()
-    modelfile = os.path.join('../perchat_model', model_type, 'model.bin')
+    modelfile = os.path.join('../NP_focus', model_type, 'model.bin')
     model.load_state_dict(torch.load(modelfile))    
     model.eval()
     print('Model Loading!!')    
     
     test_p1 = CalPER(model, args)
-
-    logger.info('모델: {} {}, persona: {}, agg: {}, weight: {}, test p@1: {}'.\
-                format(model_type, data_type, persona, agg, weight, test_p1))
+    logger.info("########################################")
+    logger.info('모델: {}, persona: {}, agg: {}, weight: {}, test p@1: {}'.\
+                format(model_type, persona, agg, weight, test_p1))
     
 def CalPER(model, args):
-    model_type, data_type, persona, weight, agg = args.model_type, args.data_type, args.persona, args.weight, args.agg
+    model_type, persona, weight, agg = args.model_type, args.persona, args.weight, args.agg
     
     """similarity persona"""
     if persona == "simcse":
@@ -54,7 +53,7 @@ def CalPER(model, args):
         sim_model = BERTScore()
         
     """dataset"""
-    data_path = "/data/project/rw/rung/source/dataset/personachat/test_both_" + data_type + ".json"
+    data_path = "../dataset/FoCus/valid_focus_persona.json"
     dataset = peronsa_loader(data_path, model_type)
     data_loader = DataLoader(dataset, batch_size=1, shuffle=False, num_workers=4, collate_fn=dataset.collate_fn)    
     
@@ -110,10 +109,6 @@ if __name__ == '__main__':
     parser  = argparse.ArgumentParser(description = "Persona Response selection" )
     
     parser.add_argument("--model_type", help = "pretrained model", default = 'roberta-large')
-    parser.add_argument("--negative_numbers", type=int, help = "how much?", default = 1)
-    parser.add_argument("--negative_context_numbers", type=int, help = "negative context numbers in whole candidates", default = 0)
-    
-    parser.add_argument("--data_type", help = "original or revised", default = 'original')
     parser.add_argument("--persona", help = "how to refelct persona (simcse or nli or bertscore)", default = None)
     parser.add_argument("--weight", type=float, help = "weighted sum", default = 0.5)
     parser.add_argument("--agg", type=str, help = "aggregation to personas", default = 'max')

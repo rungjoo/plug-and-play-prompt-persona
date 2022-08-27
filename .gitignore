@@ -1,2 +1,4 @@
 dataset
 model.bin
+*.sh
+*log*

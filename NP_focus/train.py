@@ -21,8 +21,7 @@ from collections import OrderedDict
 def main():
     """save & log path"""
     model_type = args.model_type
-    data_type = args.data_type
-    save_path = os.path.join(model_type, data_type)
+    save_path = os.path.join(model_type)
     print("###Save Path### ", save_path)
     
     os.makedirs(save_path, exist_ok=True)
@@ -38,9 +37,8 @@ def main():
     model.train()
         
     """dataset Loading"""
-    train_path = "/data/project/rw/rung/source/dataset/personachat/train_both_" + data_type + ".json"
-    dev_path = "/data/project/rw/rung/source/dataset/personachat/valid_both_" + data_type + ".json"
-    test_path = "/data/project/rw/rung/source/dataset/personachat/test_both_" + data_type + ".json"
+    train_path = "../dataset/FoCus/train_focus_persona.json"
+    dev_path = "../dataset/FoCus/valid_focus_persona.json"
     
     batch_size = args.batch
     logger.info("###################")
@@ -87,11 +85,9 @@ def main():
 
         if dev_p1 > best_dev_p1:
             best_dev_p1 = dev_p1
-            test_p1 = CalPER(model, test_path, model_type)
-            logger.info('적합성 test p@1: {}'.format(test_p1))
             _SaveModel(model, save_path)
             
-    logger.info('Final test 적합성 p@1: {}'.format(test_p1))
+    logger.info('Final dev 적합성 p@1: {}'.format(best_dev_p1))
     
 def CalPER(model, data_path, model_type):
     """dataset"""
@@ -148,8 +144,7 @@ if __name__ == '__main__':
     parser.add_argument("--lr", type=float, help = "learning rate", default = 1e-6) # 1e-5
     parser.add_argument("--batch", type=int, help = "training batch size", default = 1) # base
     
-    parser.add_argument("--model_type", help = "pretrained model", default = 'roberta-large')
-    parser.add_argument("--data_type", help = "original or revised", default = 'original')
+    parser.add_argument("--model_type", help = "pretrained model", default = 'roberta-large')    
 #     parser.add_argument("--negative_numbers", type=int, help = "how much?", default = 1)
 #     parser.add_argument("--negative_context_numbers", type=int, help = "negative context numbers in whole candidates", default = 0)
             

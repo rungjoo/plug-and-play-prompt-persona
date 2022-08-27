@@ -17,7 +17,6 @@ def main():
     model_type = args.model_type
     persona = args.persona # simcse
     persona_type = args.persona_type # original
-    weight = args.weight
     num_of_persona = args.num_of_persona
     if args.reverse:
         print("Input: [row persona -> high persona -> context]")
@@ -28,12 +27,12 @@ def main():
     prompt_question1 = "what is your personality?"
     prompt_question2 = "tell me your personality."
     prompt_question3 = "tell me more about yourself."
-    prompt_questions = [prompt_question2, prompt_question3]
-#     prompt_questions = [prompt_question1]
+#     prompt_questions = [prompt_question2, prompt_question3]
+    prompt_questions = [prompt_question1]
 
     """log"""
     data_type = args.data_type
-    log_path = os.path.join(data_type+'_test2.log'+persona)
+    log_path = os.path.join(data_type+'_test.log'+persona)
     fileHandler = logging.FileHandler(log_path)
     
     logger.addHandler(streamHandler)
@@ -42,11 +41,11 @@ def main():
     
     """model loadings"""        
     if data_type == "personachat":
-        sys.path.append('/data/project/rw/rung/01_paper/04_Persona_MRS/perchat_model')
-        modelfile = os.path.join('/data/project/rw/rung/01_paper/04_Persona_MRS/perchat_model', model_type, 'model.bin')
+        sys.path.append('../NP_persona')
+        modelfile = os.path.join('../NP_persona', model_type, 'model.bin')
     else:
-        sys.path.append('/data/project/rw/rung/01_paper/04_Persona_MRS/focus_model')
-        modelfile = os.path.join('/data/project/rw/rung/01_paper/04_Persona_MRS/focus_model', model_type, 'model.bin')
+        sys.path.append('../NP_focus')
+        modelfile = os.path.join('../NP_focus', model_type, 'model.bin')
     from model import MRSModel
     model = MRSModel(model_type).cuda()    
     model.load_state_dict(torch.load(modelfile))    
@@ -58,8 +57,8 @@ def main():
         test_p1 = CalPER(model, prompt_question, args)
 
         logger.info("prompt question: "+prompt_question)
-        logger.info('모델: {}, 데이터: {}, persona: {}, number of persona: {}+{}, weight: {}, test p@1: {}'.\
-                format(model_type, persona_type, persona, num_of_persona, args.reverse, weight, test_p1))
+        logger.info('모델: {}, 데이터: {}, persona: {}, number of persona: {}+{}, test p@1: {}'.\
+                format(model_type, persona_type, persona, num_of_persona, args.reverse, test_p1))
     
 def high_persona(persona_scores, personas, k, reverse=False):
     high_persona_utts = []
@@ -74,7 +73,7 @@ def high_persona(persona_scores, personas, k, reverse=False):
     return high_persona_utts    
     
 def CalPER(model, prompt_question, args):
-    model_type, persona_type, persona, weight = args.model_type, args.persona_type, args.persona, args.weight
+    model_type, persona_type, persona = args.model_type, args.persona_type, args.persona
     data_type = args.data_type
     
     """similarity persona"""
@@ -88,9 +87,9 @@ def CalPER(model, prompt_question, args):
         
     """dataset"""
     if data_type == 'personachat':
-        data_path = "/data/project/rw/rung/source/dataset/persona_dialog/personachat/test_both_" + persona_type + ".json"
+        data_path = "../dataset/personachat/test_both_" + persona_type + ".json"
     elif data_type == 'focus':
-        data_path = "/data/project/rw/rung/source/dataset/persona_dialog/FoCus/valid_focus_persona.json"
+        data_path = "../dataset/FoCus/valid_focus_persona.json"
     dataset = peronsa_loader(data_path, model_type)
     data_loader = DataLoader(dataset, batch_size=1, shuffle=False, num_workers=4, collate_fn=dataset.collate_fn)
 
@@ -145,11 +144,6 @@ def CalPER(model, prompt_question, args):
                 concat_token = torch.cat([persona_token, original_token], 0)
             concat_token = concat_token.unsqueeze(0).cuda()
             
-#             print("###")
-#             print(dataset.tokenizer.decode(input_token), input_label)      
-#             print(dataset.tokenizer.decode(concat_token[0]))
-#             pdb.set_trace()
-            
             """ persona MRS 점수 """
             persona_logits = model(concat_token) # (1, C)
             
@@ -166,15 +160,9 @@ def CalPER(model, prompt_question, args):
             response_true_probs.append(response_true_prob)
         
         
-        if weight < 0:
-            max_persona_score = max(persona_true_probs)
-            max_true_prob = max(response_true_probs)
-            weight = max_true_prob/max_persona_score
-        
         if persona in ["simcse", "nli", "bertscore"]:
             final_scores = []
             for response_true_prob, persona_true_prob in zip(response_true_probs, persona_true_probs):
-                # final_scores.append(persona_true_prob*weight + response_true_prob)
                 final_scores.append(persona_true_prob)
         else:
             final_scores = response_true_probs
@@ -198,7 +186,6 @@ if __name__ == '__main__':
     parser.add_argument("--data_type", help = "personachat or focus", default = 'personachat')
     parser.add_argument("--persona_type", help = "original or revised", default = 'original')
     parser.add_argument("--persona", type=str, help = "how to refelct persona", choices = ["simcse", "nli", "bertscore"], default = 'simcse')    
-    parser.add_argument("--weight", type=float, help = "weighted sum", default = 1.0)
     parser.add_argument("--num_of_persona", type=int, help = "how to use persona utterance", default = 1)
     parser.add_argument('--reverse', help='persona ordering', action="store_true")
             
