@@ -19,7 +19,6 @@ def main():
     persona = args.persona # simcse
     persona_type = args.persona_type # original
     num_of_persona = args.num_of_persona
-    few_shot = args.few_shot
     if args.reverse:
         print("Input: [row persona -> high persona -> context]")
     else:
@@ -30,10 +29,7 @@ def main():
 
     """log"""
     data_type = args.data_type
-    base_path = f"few/{model_type}_{persona_type}_{few_shot}"
-    if not os.path.exists(base_path):
-        os.makedirs(base_path)
-    log_path = f"{base_path}/train.log"
+    log_path = os.path.join(f"{model_type}_{persona_type}_no_ground.log")
     fileHandler = logging.FileHandler(log_path)
     
     logger.addHandler(streamHandler)
@@ -43,10 +39,10 @@ def main():
     """ model loadings """
     if data_type == "personachat":
         sys.path.append('../NP_persona')
-        modelfile = os.path.join('../NP_persona', model_type, 'model.bin')
+        modelfile = os.path.join('../model/NP_persona', model_type, 'model.bin')
     else:
         sys.path.append('../NP_focus')
-        modelfile = os.path.join('../NP_focus', model_type, 'model.bin')
+        modelfile = os.path.join('../model/NP_focus', model_type, 'model.bin')
     from model import MRSModel
     model = MRSModel(model_type).cuda()    
     model.load_state_dict(torch.load(modelfile))    
@@ -64,19 +60,19 @@ def main():
     train_loader = DataLoader(train_dataset, batch_size=1, shuffle=False, num_workers=4, collate_fn=train_dataset.collate_fn)
     
     """similarity persona"""
-    if persona == "simcse":
-        sim_model = SimCSE().cuda()
-    elif persona == "nli":
-        sim_model = senBERT().cuda()
-    elif persona == "bertscore":
-        sim_model = BERTScore()    
-    sim_model.eval()
+#     if persona == "simcse":
+#         sim_model = SimCSE().cuda()
+#     elif persona == "nli":
+#         sim_model = senBERT().cuda()
+#     elif persona == "bertscore":
+#         sim_model = BERTScore()    
+#     sim_model.eval()
+    sim_model = None
     
     """ 하이퍼 파라미터들 """
-    training_epochs = int(512//few_shot)
-    logger.info(f"총 iteration: 512, 학습 epochs: {training_epochs}")
+    training_epochs = 5
     max_grad_norm = 10
-    lr = 1e-4
+    lr = 1e-6
     num_training_steps = len(train_dataset)*training_epochs
     num_warmup_steps = len(train_dataset)
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr) # , eps=1e-06, weight_decay=0.01
@@ -88,15 +84,13 @@ def main():
     for epoch in tqdm(range(training_epochs)):
         model.train()
         for i_batch, (batch_input_token, batch_labels, batch_personas, batch_response) in enumerate(tqdm(train_loader, desc='train_iteration')):
-            if i_batch > few_shot-1:
-                break
             batch_labels = batch_labels.cuda()
 
             if persona in ["simcse", "nli", "bertscore"]:
                 cand_persona_scores, max_persona_utts = [], []
                 for personas, responses in zip(batch_personas, batch_response): # batch = 1
                     for response in responses:                    
-                        persona_scores = sim_model(response, personas)
+                        persona_scores = [] # sim_model(response, personas)
                         high_persona_utts = high_persona(persona_scores, personas, args.num_of_persona, args.reverse)
                         max_persona_utts.append(high_persona_utts)                    
 
@@ -111,6 +105,7 @@ def main():
                 for max_persona_utt in max_persona_utt_list:
                     persona_string += " " + max_persona_utt
                 persona_token += train_dataset.tokenizer.encode(train_dataset.tokenizer.sep_token + persona_string, add_special_tokens=False)
+#                 persona_token += dataset.tokenizer.encode(dataset.tokenizer.sep_token + " " + max_persona_utt_list[0] + " " + max_persona_utt_list[1] + " " + max_persona_utt_list[2], add_special_tokens=False)
                 persona_token = torch.tensor(persona_token)            
 
                 """ final tokens [persona; context; cls; sep; response] """
@@ -135,15 +130,17 @@ def main():
             scheduler.step()
             optimizer.zero_grad()
 
-#     dev_p1 = CalPER(model, prompt_question, sim_model, dev_path, args)
-#     logger.info('모델: {}, 데이터: {}, persona: {}, number of persona: {}+{}, dev p@1: {}'.\
-#             format(model_type, persona_type, persona, num_of_persona, args.reverse, dev_p1))
+        dev_p1 = CalPER(model, prompt_question, sim_model, dev_path, args)
+        logger.info('모델: {}, 데이터: {}, persona: {}, number of persona: {}+{}, dev p@1: {}'.\
+                format(model_type, persona_type, persona, num_of_persona, args.reverse, dev_p1))
 
-    test_p1 = CalPER(model, prompt_question, sim_model, test_path, args)
-    logger.info('모델: {}, 데이터: {}, persona: {}, number of persona: {}+{}, few_shot: {}, test p@1: {}'.\
-            format(model_type, persona_type, persona, num_of_persona, args.reverse, few_shot, test_p1))
-    SaveModel(model, base_path)
-    logger.info('Best test p@1: {}'.format(test_p1))
+        if dev_p1 > best_dev_p1:
+            best_dev_p1 = dev_p1
+            test_p1 = CalPER(model, prompt_question, sim_model, test_path, args)
+            logger.info('Epoch: {}, 모델: {}, 데이터: {}, persona: {}, number of persona: {}+{}, test p@1: {}'.\
+                    format(epoch, model_type, persona_type, persona, num_of_persona, args.reverse, test_p1))
+            SaveModel(model, f"{model_type}_{persona_type}_no_ground")
+        logger.info('Best test p@1: {}'.format(test_p1))
 
 
 def SaveModel(model, path):
@@ -161,15 +158,8 @@ def CELoss(pred_outs, labels):
     return loss_val
 
 def high_persona(persona_scores, personas, k, reverse=False):
-    high_persona_utts = []
-    sort_persona_scores = sorted(persona_scores, reverse=True)
-    for i in range(k):
-        persona_score = sort_persona_scores[i]
-        persona_ind = persona_scores.index(persona_score)
-        high_persona_utts.append(personas[persona_ind])
-    if reverse:
-        high_persona_utts.reverse()
-    return high_persona_utts    
+    high_persona_utts = personas[:k]
+    return high_persona_utts  
     
 def CalPER(model, prompt_question, sim_model, data_path, args):
     model.eval()
@@ -192,7 +182,7 @@ def CalPER(model, prompt_question, sim_model, data_path, args):
             cand_persona_scores, max_persona_utts = [], []
             for personas, responses in zip(batch_personas, batch_response): # batch = 1
                 for response in responses:                    
-                    persona_scores = sim_model(response, personas)
+                    persona_scores = [] # sim_model(response, personas)
                     high_persona_utts = high_persona(persona_scores, personas, args.num_of_persona, args.reverse)
                     max_persona_utts.append(high_persona_utts)                    
             
@@ -204,6 +194,7 @@ def CalPER(model, prompt_question, sim_model, data_path, args):
             for max_persona_utt in max_persona_utt_list:
                 persona_string += " " + max_persona_utt
             persona_token += dataset.tokenizer.encode(dataset.tokenizer.sep_token + persona_string, add_special_tokens=False)
+#             persona_token += dataset.tokenizer.encode(dataset.tokenizer.sep_token + " " + max_persona_utt_list[0] + " " + max_persona_utt_list[1] + " " + max_persona_utt_list[2], add_special_tokens=False)
             persona_token = torch.tensor(persona_token)            
             
             """ final tokens [sep; persona; context; cls; sep; response] """
@@ -243,8 +234,6 @@ if __name__ == '__main__':
     parser.add_argument("--persona", type=str, help = "how to refelct persona", choices = ["simcse", "nli", "bertscore"], default = 'simcse')
     parser.add_argument("--num_of_persona", type=int, help = "how to use persona utterance", default = 1)
     parser.add_argument('--reverse', help='persona ordering', action="store_true")
-    
-    parser.add_argument("--few_shot", type=int, help = "how to use persona utterance", default = 32)
             
     args = parser.parse_args()
     

@@ -42,17 +42,17 @@ def main():
     """model loadings"""        
     if data_type == "personachat":
         sys.path.append('../NP_persona')
-        modelfile = os.path.join('../NP_persona', model_type, 'model.bin')
+        modelfile = os.path.join('../model/NP_persona', model_type, 'model.bin')
     else:
         sys.path.append('../NP_focus')
-        modelfile = os.path.join('../NP_focus', model_type, 'model.bin')
+        modelfile = os.path.join('../model/NP_focus', model_type, 'model.bin')
     from model import MRSModel
     model = MRSModel(model_type).cuda()    
     model.load_state_dict(torch.load(modelfile))    
     model.eval()
     print('Model Loading!!')    
     
-    logger.info("#####################################")
+    logger.info("################## test no ground ###################")
     for prompt_question in prompt_questions:
         test_p1 = CalPER(model, prompt_question, args)
 
@@ -61,29 +61,22 @@ def main():
                 format(model_type, persona_type, persona, num_of_persona, args.reverse, test_p1))
     
 def high_persona(persona_scores, personas, k, reverse=False):
-    high_persona_utts = []
-    sort_persona_scores = sorted(persona_scores, reverse=True)
-    cand_nums = min(k,len(sort_persona_scores))
-    for i in range(cand_nums):
-        persona_score = sort_persona_scores[i]
-        persona_ind = persona_scores.index(persona_score)
-        high_persona_utts.append(personas[persona_ind])
-    if reverse:
-        high_persona_utts.reverse()
-    return high_persona_utts    
+    high_persona_utts = personas[:k]
+    return high_persona_utts  
     
 def CalPER(model, prompt_question, args):
     model_type, persona_type, persona = args.model_type, args.persona_type, args.persona
     data_type = args.data_type
     
     """similarity persona"""
-    if persona == "simcse":
-        sim_model = SimCSE().cuda()
-    elif persona == "nli":
-        sim_model = senBERT().cuda()
-    elif persona == "bertscore":
-        sim_model = BERTScore()
-    sim_model.eval()
+#     if persona == "simcse":
+#         sim_model = SimCSE().cuda()
+#     elif persona == "nli":
+#         sim_model = senBERT().cuda()
+#     elif persona == "bertscore":
+#         sim_model = BERTScore()
+#     sim_model.eval()
+    sim_model = None
         
     """dataset"""
     if data_type == 'personachat':
@@ -105,7 +98,7 @@ def CalPER(model, prompt_question, args):
             cand_persona_scores, max_persona_utts = [], []
             for personas, responses in zip(batch_personas, batch_response): # batch = 1
                 for response in responses:                    
-                    persona_scores = sim_model(response, personas)
+                    persona_scores = [] # sim_model(response, personas)
                     high_persona_utts = high_persona(persona_scores, personas, args.num_of_persona, args.reverse)
                     max_persona_utts.append(high_persona_utts)                    
             

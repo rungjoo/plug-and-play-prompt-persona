@@ -31,7 +31,7 @@ def main():
 
     """log"""
     data_type = args.data_type
-    log_path = os.path.join(model_type+'_'+persona_type+'_train.log')
+    log_path = os.path.join(f"{model_type}_{persona_type}.log")
     fileHandler = logging.FileHandler(log_path)
     
     logger.addHandler(streamHandler)
@@ -41,10 +41,10 @@ def main():
     """ model loadings """
     if data_type == "personachat":
         sys.path.append('../NP_persona')
-        modelfile = os.path.join('../NP_persona', model_type, 'model.bin')
+        modelfile = os.path.join('../model/NP_persona', model_type, 'model.bin')
     else:
         sys.path.append('../NP_focus')
-        modelfile = os.path.join('../NP_focus', model_type, 'model.bin')
+        modelfile = os.path.join('../model/NP_focus', model_type, 'model.bin')
     from model import MRSModel
     model = MRSModel(model_type).cuda()    
     model.load_state_dict(torch.load(modelfile))    

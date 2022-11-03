@@ -32,7 +32,7 @@ def main():
     """model loadings"""
     data_type = args.data_type
     model = MRSModel(model_type).cuda()
-    modelfile = os.path.join('../NP_persona', model_type, 'model.bin')
+    modelfile = os.path.join('../model/NP_persona', model_type, 'model.bin')
     model.load_state_dict(torch.load(modelfile))    
     model.eval()
     print('Model Loading!!')    

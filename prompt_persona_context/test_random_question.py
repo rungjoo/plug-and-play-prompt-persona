@@ -6,6 +6,7 @@ import torch
 import torch.nn as nn
 from torch.nn.functional import softmax
 import sys, os
+import random
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 from torch.utils.data import Dataset, DataLoader
@@ -52,7 +53,7 @@ def main():
     model.eval()
     print('Model Loading!!')    
     
-    logger.info("#####################################")
+    logger.info("################## test random question ###################")
     for prompt_question in prompt_questions:
         test_p1 = CalPER(model, prompt_question, args)
 
@@ -73,6 +74,11 @@ def high_persona(persona_scores, personas, k, reverse=False):
     return high_persona_utts    
     
 def CalPER(model, prompt_question, args):
+    f = open('all_utts.txt','r')
+    all_utts = f.readlines()
+    all_utts = [x.strip() for x in all_utts]
+    f.close()    
+    
     model_type, persona_type, persona = args.model_type, args.persona_type, args.persona
     data_type = args.data_type
     
@@ -92,8 +98,6 @@ def CalPER(model, prompt_question, args):
         data_path = "../dataset/FoCus/valid_focus_persona.json"
     dataset = peronsa_loader(data_path, model_type)
     data_loader = DataLoader(dataset, batch_size=1, shuffle=False, num_workers=4, collate_fn=dataset.collate_fn)
-
-    prompt_token = dataset.tokenizer.encode(dataset.tokenizer.sep_token + " " + prompt_question, add_special_tokens=False)
     
     true_index = 1
     pre1 = []
@@ -121,6 +125,8 @@ def CalPER(model, prompt_question, args):
                     
             """ persona tokens """
             persona_token = []
+            random_prompt_question = random.choice(all_utts)
+            prompt_token = dataset.tokenizer.encode(dataset.tokenizer.sep_token + " " + random_prompt_question, add_special_tokens=False)
             persona_token += prompt_token
             persona_string = ""
             for max_persona_utt in max_persona_utt_list:

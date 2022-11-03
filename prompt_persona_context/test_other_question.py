@@ -17,18 +17,22 @@ def main():
     model_type = args.model_type
     persona = args.persona # simcse
     persona_type = args.persona_type # original
-    sim_threshold = args.sim_threshold
+    num_of_persona = args.num_of_persona
     if args.reverse:
         print("Input: [row persona -> high persona -> context]")
     else:
         print("Input: [high persona -> row persona -> context]")
     
     """ prompt """
-    prompt_question = "what is your personality?"
+    prompt_question1 = "what is your personality?"
+    prompt_question2 = "tell me your personality."
+    prompt_question3 = "tell me more about yourself."
+    prompt_questions = [prompt_question2, prompt_question3]
+#     prompt_questions = [prompt_question1]
 
     """log"""
     data_type = args.data_type
-    log_path = os.path.join(f"{data_type}_{persona_type}_test.log")
+    log_path = os.path.join(data_type+'_test.log'+persona)
     fileHandler = logging.FileHandler(log_path)
     
     logger.addHandler(streamHandler)
@@ -38,33 +42,32 @@ def main():
     """model loadings"""        
     if data_type == "personachat":
         sys.path.append('../NP_persona')
-        modelfile = os.path.join('../NP_persona', model_type, 'model.bin')
+        modelfile = os.path.join('../model/NP_persona', model_type, 'model.bin')
     else:
         sys.path.append('../NP_focus')
-        modelfile = os.path.join('../NP_focus', model_type, 'model.bin')
+        modelfile = os.path.join('../model/NP_focus', model_type, 'model.bin')
     from model import MRSModel
     model = MRSModel(model_type).cuda()    
     model.load_state_dict(torch.load(modelfile))    
     model.eval()
     print('Model Loading!!')    
     
-    logger.info("#####################################")
-    test_p1 = CalPER(model, prompt_question, args)
+    logger.info("################## test other question ###################")
+    for prompt_question in prompt_questions:
+        test_p1 = CalPER(model, prompt_question, args)
 
-    logger.info("prompt question: "+prompt_question)
-    logger.info('모델: {}, 데이터: {}, persona: {}, threshold of sim: {}+{}, test p@1: {}'.\
-            format(model_type, persona_type, persona, sim_threshold, args.reverse, test_p1))
+        logger.info("prompt question: "+prompt_question)
+        logger.info('모델: {}, 데이터: {}, persona: {}, number of persona: {}+{}, test p@1: {}'.\
+                format(model_type, persona_type, persona, num_of_persona, args.reverse, test_p1))
     
-def high_persona(persona_scores, personas, threshold, reverse=False):
+def high_persona(persona_scores, personas, k, reverse=False):
     high_persona_utts = []
     sort_persona_scores = sorted(persona_scores, reverse=True)
-    cand_nums = len(sort_persona_scores)
+    cand_nums = min(k,len(sort_persona_scores))
     for i in range(cand_nums):
         persona_score = sort_persona_scores[i]
-        # theshold 이상만 사용
-        if persona_score >= threshold: 
-            persona_ind = persona_scores.index(persona_score)
-            high_persona_utts.append(personas[persona_ind])
+        persona_ind = persona_scores.index(persona_score)
+        high_persona_utts.append(personas[persona_ind])
     if reverse:
         high_persona_utts.reverse()
     return high_persona_utts    
@@ -96,7 +99,6 @@ def CalPER(model, prompt_question, args):
     pre1 = []
     for i_batch, (batch_input_token, batch_labels, batch_personas, batch_response) in enumerate(tqdm(data_loader, desc='eval_iteration')):
         response_true_probs, persona_true_probs = [], []
-        final_true_probs = []
         batch_labels = batch_labels.tolist()
             
         if persona in ["simcse", "nli", "bertscore"]:
@@ -104,7 +106,7 @@ def CalPER(model, prompt_question, args):
             for personas, responses in zip(batch_personas, batch_response): # batch = 1
                 for response in responses:                    
                     persona_scores = sim_model(response, personas)
-                    high_persona_utts = high_persona(persona_scores, personas, args.sim_threshold, args.reverse)
+                    high_persona_utts = high_persona(persona_scores, personas, args.num_of_persona, args.reverse)
                     max_persona_utts.append(high_persona_utts)                    
             
         for max_persona_utt_list, input_token, input_label in zip(max_persona_utts, batch_input_token, batch_labels):
@@ -118,12 +120,13 @@ def CalPER(model, prompt_question, args):
                     sep_pos = i
                     
             """ persona tokens """
-            persona_token = []            
+            persona_token = []
             persona_token += prompt_token
             persona_string = ""
             for max_persona_utt in max_persona_utt_list:
                 persona_string += " " + max_persona_utt
             persona_token += dataset.tokenizer.encode(dataset.tokenizer.sep_token + persona_string, add_special_tokens=False)
+#             persona_token += dataset.tokenizer.encode(dataset.tokenizer.sep_token + " " + max_persona_utt_list[0] + " " + max_persona_utt_list[1] + " " + max_persona_utt_list[2], add_special_tokens=False)
             persona_token = torch.tensor(persona_token)
             
             """ context tokens """
@@ -155,14 +158,15 @@ def CalPER(model, prompt_question, args):
             response_prob = softmax(response_logits, 1) # (1, 2)
             response_true_prob = response_prob.squeeze(0)[true_index].item()
             response_true_probs.append(response_true_prob)
-            
-            """ 동작 방식 """
-            if len(max_persona_utt_list) > 0:
-                final_true_probs.append(persona_true_prob)
-            else:
-                final_true_probs.append(response_true_prob)        
         
-        max_ind = final_true_probs.index(max(final_true_probs))
+        
+        if persona in ["simcse", "nli", "bertscore"]:
+            final_scores = []
+            for response_true_prob, persona_true_prob in zip(response_true_probs, persona_true_probs):
+                final_scores.append(persona_true_prob)
+        else:
+            final_scores = response_true_probs
+        max_ind = final_scores.index(max(final_scores))
         
         if batch_labels[max_ind] > 0:
             pre1.append(1)
@@ -182,7 +186,7 @@ if __name__ == '__main__':
     parser.add_argument("--data_type", help = "personachat or focus", default = 'personachat')
     parser.add_argument("--persona_type", help = "original or revised", default = 'original')
     parser.add_argument("--persona", type=str, help = "how to refelct persona", choices = ["simcse", "nli", "bertscore"], default = 'simcse')    
-    parser.add_argument("--sim_threshold", type=float, help = "threshold", default = 0.5)
+    parser.add_argument("--num_of_persona", type=int, help = "how to use persona utterance", default = 1)
     parser.add_argument('--reverse', help='persona ordering', action="store_true")
             
     args = parser.parse_args()

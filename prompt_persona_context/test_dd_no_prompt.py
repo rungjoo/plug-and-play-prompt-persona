@@ -24,10 +24,7 @@ def main():
         print("Input: [high persona -> row persona -> context]")
     
     """ prompt """
-    prompt_question1 = "what is your personality?"
-    prompt_question2 = "tell me your personality."
-    prompt_question3 = "tell me more about yourself."
-#     prompt_questions = [prompt_question2, prompt_question3]
+    prompt_question1 = "No Prompt"
     prompt_questions = [prompt_question1]
 
     """log"""
@@ -42,17 +39,21 @@ def main():
     """model loadings"""        
     if data_type == "personachat":
         sys.path.append('../NP_persona')
-        modelfile = os.path.join('../model/NP_persona', model_type, 'model.bin')
+        # modelfile = os.path.join('/data/project/rw/rung/01_paper/04_Persona_MRS/daily_model/roberta-base/lower/10/0', 'model.bin')
+        # modelfile = os.path.join('/data/project/rw/rung/01_paper/04_Persona_MRS/daily_model/roberta-base/lower/10/1', 'model.bin')
+        modelfile = os.path.join('/data/project/rw/rung/01_paper/04_Persona_MRS/daily_model/roberta-base/original/10/0', 'model.bin')
     else:
         sys.path.append('../NP_focus')
-        modelfile = os.path.join('../model/NP_focus', model_type, 'model.bin')
+        # modelfile = os.path.join('/data/project/rw/rung/01_paper/04_Persona_MRS/daily_model/roberta-base/lower/10/0', 'model.bin')
+        # modelfile = os.path.join('/data/project/rw/rung/01_paper/04_Persona_MRS/daily_model/roberta-base/lower/10/1', 'model.bin')
+        modelfile = os.path.join('/data/project/rw/rung/01_paper/04_Persona_MRS/daily_model/roberta-base/original/10/0', 'model.bin')
     from model import MRSModel
     model = MRSModel(model_type).cuda()    
     model.load_state_dict(torch.load(modelfile))    
     model.eval()
     print('Model Loading!!')    
     
-    logger.info("#####################################")
+    logger.info("################## test no corpus and no prompt (using dd) ###################")
     for prompt_question in prompt_questions:
         test_p1 = CalPER(model, prompt_question, args)
 
@@ -77,13 +78,14 @@ def CalPER(model, prompt_question, args):
     data_type = args.data_type
     
     """similarity persona"""
-    if persona == "simcse":
-        sim_model = SimCSE().cuda()
-    elif persona == "nli":
-        sim_model = senBERT().cuda()
-    elif persona == "bertscore":
-        sim_model = BERTScore()
-    sim_model.eval()
+#     if persona == "simcse":
+#         sim_model = SimCSE().cuda()
+#     elif persona == "nli":
+#         sim_model = senBERT().cuda()
+#     elif persona == "bertscore":
+#         sim_model = BERTScore()
+#     sim_model.eval()
+    sim_model = None
         
     """dataset"""
     if data_type == 'personachat':
@@ -93,7 +95,7 @@ def CalPER(model, prompt_question, args):
     dataset = peronsa_loader(data_path, model_type)
     data_loader = DataLoader(dataset, batch_size=1, shuffle=False, num_workers=4, collate_fn=dataset.collate_fn)
 
-    prompt_token = dataset.tokenizer.encode(dataset.tokenizer.sep_token + " " + prompt_question, add_special_tokens=False)
+    # prompt_token = dataset.tokenizer.encode(dataset.tokenizer.sep_token + " " + prompt_question, add_special_tokens=False)
     
     true_index = 1
     pre1 = []
@@ -105,9 +107,9 @@ def CalPER(model, prompt_question, args):
             cand_persona_scores, max_persona_utts = [], []
             for personas, responses in zip(batch_personas, batch_response): # batch = 1
                 for response in responses:                    
-                    persona_scores = sim_model(response, personas)
-                    high_persona_utts = high_persona(persona_scores, personas, args.num_of_persona, args.reverse)
-                    max_persona_utts.append(high_persona_utts)                    
+                    # persona_scores = sim_model(response, personas)
+                    # high_persona_utts = high_persona(persona_scores, personas, args.num_of_persona, args.reverse)
+                    max_persona_utts.append(None)                    
             
         for max_persona_utt_list, input_token, input_label in zip(max_persona_utts, batch_input_token, batch_labels):
             """ cls token 위치 찾기 """
@@ -120,14 +122,14 @@ def CalPER(model, prompt_question, args):
                     sep_pos = i
                     
             """ persona tokens """
-            persona_token = []
-            persona_token += prompt_token
-            persona_string = ""
-            for max_persona_utt in max_persona_utt_list:
-                persona_string += " " + max_persona_utt
-            persona_token += dataset.tokenizer.encode(dataset.tokenizer.sep_token + persona_string, add_special_tokens=False)
-#             persona_token += dataset.tokenizer.encode(dataset.tokenizer.sep_token + " " + max_persona_utt_list[0] + " " + max_persona_utt_list[1] + " " + max_persona_utt_list[2], add_special_tokens=False)
-            persona_token = torch.tensor(persona_token)
+#             persona_token = []
+#             persona_token += prompt_token
+#             persona_string = ""
+#             for max_persona_utt in max_persona_utt_list:
+#                 persona_string += " " + max_persona_utt
+#             persona_token += dataset.tokenizer.encode(dataset.tokenizer.sep_token + persona_string, add_special_tokens=False)
+# #             persona_token += dataset.tokenizer.encode(dataset.tokenizer.sep_token + " " + max_persona_utt_list[0] + " " + max_persona_utt_list[1] + " " + max_persona_utt_list[2], add_special_tokens=False)
+#             persona_token = torch.tensor(persona_token)
             
             """ context tokens """
             context_token = input_token[:cls_pos]
@@ -137,11 +139,11 @@ def CalPER(model, prompt_question, args):
             
             """ final tokens [persona; context; cls; sep; response] """
             original_token = torch.cat([context_token, input_token[cls_pos:sep_pos+1], response_token], 0)
-            delete_length = original_token.shape[0]+persona_token.shape[0]-dataset.tokenizer.model_max_length
+            delete_length = original_token.shape[0]-dataset.tokenizer.model_max_length
             if delete_length > 0:
-                concat_token = torch.cat([persona_token, original_token[delete_length:]], 0)
+                concat_token = original_token[delete_length:]
             else:
-                concat_token = torch.cat([persona_token, original_token], 0)
+                concat_token = original_token
             concat_token = concat_token.unsqueeze(0).cuda()
             
             """ persona MRS 점수 """

@@ -40,19 +40,20 @@ def main():
     logger.setLevel(level=logging.DEBUG)
     
     """model loadings"""        
+    # cross
     if data_type == "personachat":
-        sys.path.append('../NP_persona')
-        modelfile = os.path.join('../model/NP_persona', model_type, 'model.bin')
-    else:
         sys.path.append('../NP_focus')
         modelfile = os.path.join('../model/NP_focus', model_type, 'model.bin')
+    else:
+        sys.path.append('../NP_persona')
+        modelfile = os.path.join('../model/NP_persona', model_type, 'model.bin')        
     from model import MRSModel
     model = MRSModel(model_type).cuda()    
     model.load_state_dict(torch.load(modelfile))    
     model.eval()
     print('Model Loading!!')    
     
-    logger.info("#####################################")
+    logger.info("################## test cross ###################")
     for prompt_question in prompt_questions:
         test_p1 = CalPER(model, prompt_question, args)
 

@@ -22,7 +22,10 @@ def main():
     """save & log path"""
     model_type = args.model_type
     data_type = args.data_type
-    save_path = os.path.join(model_type)
+    if args.scratch:
+        save_path = os.path.join(f'{model_type}_scratch')
+    else:
+        save_path = os.path.join(model_type)
     print("###Save Path### ", save_path)
     
     os.makedirs(save_path, exist_ok=True)
@@ -34,13 +37,13 @@ def main():
     logger.setLevel(level=logging.DEBUG)    
     
     """Model Loading"""    
-    model = MRSModel(model_type).cuda()
+    model = MRSModel(model_type, args.scratch).cuda()
     model.train()
         
     """dataset Loading"""
-    train_path = "../datset/personachat/train_both_" + data_type + ".json"
-    dev_path = "../datset/personachat/valid_both_" + data_type + ".json"
-    test_path = "../datset/personachat/test_both_" + data_type + ".json"
+    train_path = "../dataset/personachat/train_both_" + data_type + ".json"
+    dev_path = "../dataset/personachat/valid_both_" + data_type + ".json"
+    test_path = "../dataset/personachat/test_both_" + data_type + ".json"
     
     batch_size = args.batch
     logger.info("###################")
@@ -150,6 +153,7 @@ if __name__ == '__main__':
     
     parser.add_argument("--model_type", help = "pretrained model", default = 'roberta-large')
     parser.add_argument("--data_type", help = "original or revised", default = 'original')
+    parser.add_argument('--scratch', help='training from scratch', action="store_true")
 #     parser.add_argument("--negative_numbers", type=int, help = "how much?", default = 1)
 #     parser.add_argument("--negative_context_numbers", type=int, help = "negative context numbers in whole candidates", default = 0)
             

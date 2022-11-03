@@ -52,7 +52,7 @@ def main():
     model.eval()
     print('Model Loading!!')    
     
-    logger.info("#####################################")
+    logger.info("################## test no question ###################")
     for prompt_question in prompt_questions:
         test_p1 = CalPER(model, prompt_question, args)
 
@@ -93,7 +93,7 @@ def CalPER(model, prompt_question, args):
     dataset = peronsa_loader(data_path, model_type)
     data_loader = DataLoader(dataset, batch_size=1, shuffle=False, num_workers=4, collate_fn=dataset.collate_fn)
 
-    prompt_token = dataset.tokenizer.encode(dataset.tokenizer.sep_token + " " + prompt_question, add_special_tokens=False)
+#     prompt_token = dataset.tokenizer.encode(dataset.tokenizer.sep_token + " " + prompt_question, add_special_tokens=False)
     
     true_index = 1
     pre1 = []
@@ -121,7 +121,7 @@ def CalPER(model, prompt_question, args):
                     
             """ persona tokens """
             persona_token = []
-            persona_token += prompt_token
+#             persona_token += prompt_token
             persona_string = ""
             for max_persona_utt in max_persona_utt_list:
                 persona_string += " " + max_persona_utt

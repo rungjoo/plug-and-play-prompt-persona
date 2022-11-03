@@ -25,13 +25,11 @@ def main():
         print("Input: [high persona -> row persona -> context]")
     
     """ prompt """
-    prompt_question = "what is your personality?"
-#     prompt_question2 = "tell me your personality."
-#     prompt_question3 = "tell me more about yourself."
+    prompt_question = "No question"
 
     """log"""
     data_type = args.data_type
-    log_path = os.path.join(model_type+'_'+persona_type+'_train.log')
+    log_path = os.path.join(f"{model_type}_{persona_type}_no_question.log")
     fileHandler = logging.FileHandler(log_path)
     
     logger.addHandler(streamHandler)
@@ -41,10 +39,10 @@ def main():
     """ model loadings """
     if data_type == "personachat":
         sys.path.append('../NP_persona')
-        modelfile = os.path.join('../NP_persona', model_type, 'model.bin')
+        modelfile = os.path.join('../model/NP_persona', model_type, 'model.bin')
     else:
         sys.path.append('../NP_focus')
-        modelfile = os.path.join('../NP_focus', model_type, 'model.bin')
+        modelfile = os.path.join('../model/NP_focus', model_type, 'model.bin')
     from model import MRSModel
     model = MRSModel(model_type).cuda()    
     model.load_state_dict(torch.load(modelfile))    
@@ -79,7 +77,7 @@ def main():
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr) # , eps=1e-06, weight_decay=0.01
     scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=num_warmup_steps, num_training_steps=num_training_steps)    
     
-    prompt_token = train_dataset.tokenizer.encode(train_dataset.tokenizer.sep_token + " " + prompt_question, add_special_tokens=False)
+    # prompt_token = train_dataset.tokenizer.encode(train_dataset.tokenizer.sep_token + " " + prompt_question, add_special_tokens=False)
     logger.info("prompt question: "+prompt_question)
     best_dev_p1 = 0
     for epoch in tqdm(range(training_epochs)):
@@ -101,12 +99,11 @@ def main():
 
                 """ persona tokens """
                 persona_token = []
-                persona_token += prompt_token
+                # persona_token += prompt_token
                 persona_string = ""
                 for max_persona_utt in max_persona_utt_list:
                     persona_string += " " + max_persona_utt
                 persona_token += train_dataset.tokenizer.encode(train_dataset.tokenizer.sep_token + persona_string, add_special_tokens=False)
-#                 persona_token += dataset.tokenizer.encode(dataset.tokenizer.sep_token + " " + max_persona_utt_list[0] + " " + max_persona_utt_list[1] + " " + max_persona_utt_list[2], add_special_tokens=False)
                 persona_token = torch.tensor(persona_token)            
 
                 """ final tokens [persona; context; cls; sep; response] """
@@ -138,9 +135,9 @@ def main():
         if dev_p1 > best_dev_p1:
             best_dev_p1 = dev_p1
             test_p1 = CalPER(model, prompt_question, sim_model, test_path, args)
-            logger.info('모델: {}, 데이터: {}, persona: {}, number of persona: {}+{}, test p@1: {}'.\
-                    format(model_type, persona_type, persona, num_of_persona, args.reverse, test_p1))
-            SaveModel(model, model_type+'_'+persona_type)
+            logger.info('Epoch: {}, 모델: {}, 데이터: {}, persona: {}, number of persona: {}+{}, test p@1: {}'.\
+                    format(epoch, model_type, persona_type, persona, num_of_persona, args.reverse, test_p1))
+            SaveModel(model, f"{model_type}_{persona_type}_no_question")
         logger.info('Best test p@1: {}'.format(test_p1))
 
 

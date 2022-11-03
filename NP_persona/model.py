@@ -1,4 +1,4 @@
-from transformers import RobertaModel, RobertaTokenizer
+from transformers import RobertaModel, RobertaTokenizer, RobertaConfig
 import torch
 import numpy as np
 import torch
@@ -8,12 +8,19 @@ import os, sys
 import pdb
 
 class MRSModel(nn.Module):
-    def __init__(self, model_type):
+    def __init__(self, model_type, scratch=False):
         super(MRSModel, self).__init__()        
         
         model_path = os.path.join('/data/project/rw/rung/model', model_type)
         self.tokenizer = RobertaTokenizer.from_pretrained(model_path)
-        self.model = RobertaModel.from_pretrained(model_path)
+        
+        if scratch:
+            print("처음부터 학습")
+            configuration = RobertaConfig.from_pretrained('/data/project/rw/rung/model/roberta-large')
+            self.model = RobertaModel(configuration)
+        else:
+            print("PLM 이용")
+            self.model = RobertaModel.from_pretrained(model_path)
         
         self.Wc = nn.Linear(self.model.config.hidden_size, 2) # for 적합도
 

@@ -31,7 +31,7 @@ def main():
     
     """model loadings"""
     model = MRSModel(model_type).cuda()
-    modelfile = os.path.join('../NP_focus', model_type, 'model.bin')
+    modelfile = os.path.join('../model/NP_focus', model_type, 'model.bin')
     model.load_state_dict(torch.load(modelfile))    
     model.eval()
     print('Model Loading!!')    
