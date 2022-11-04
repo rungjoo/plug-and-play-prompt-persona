@@ -32,7 +32,7 @@
 cd NP_focus
 python3 train.py --model_type roberta-{size} --epoch 10
 ```
-    - size: base or large
+- size: base or large
 
 ## NP_persona
 **standard response selection model for PERSONA-CHAT**
@@ -41,8 +41,8 @@ python3 train.py --model_type roberta-{size} --epoch 10
 cd NP_focus
 python3 train.py --model_type roberta-{size} --data_type {data_type} --epoch 10
 ```
-    - size: base or large
-    - data_type: original or revised
+- size: base or large
+- data_type: original or revised
 
 ## SoP (Similarity of Persona)
 **Zero-shot baseline**
@@ -53,11 +53,11 @@ python3 train.py --model_type roberta-{size} --data_type {data_type} --epoch 10
 cd SoP
 python3 test_perchat.py --model_type roberta-{size} --data_type {data_type} --persona simcse --weight {weight} --agg max
 ```
-    - size: base or large
-    - data_type: original or revised (It doesn't matter in focus))
-    - weight
-        - 0.5 for original persona and Focus
-        - 0.05 for revised persona
+- size: base or large
+- data_type: original or revised (It doesn't matter in focus))
+- weight
+    - 0.5 for original persona and Focus
+    - 0.05 for revised persona
 
 ## prompt_finetuning
 **Fine-tuned P5 model**
@@ -69,12 +69,12 @@ python3 test_perchat.py --model_type roberta-{size} --data_type {data_type} --pe
 cd prompt_finetuning
 python3 train.py --model_type roberta-{size} --data_type {data_type} --persona_type {persona_type} --persona {persona} --num_of_persona {num_of_persona} --reverse
 ```
-    - size: base or large
-    - data_type: personachat or focus
-    - persona_type: original or revised (It doesn't matter in focus)
-    - persona: simcse or nli or bertscore (recommend: simcse)
-    - num_of_persona: 1 to 5  (recommend: 2)
-    - reverse: option (order of persona sentences)
+- size: base or large
+- data_type: personachat or focus
+- persona_type: original or revised (It doesn't matter in focus)
+- persona: simcse or nli or bertscore (recommend: simcse)
+- num_of_persona: 1 to 5  (recommend: 2)
+- reverse: option (order of persona sentences)
 
 ## prompt_persona_context
 **Zero-shot P5 model**
@@ -89,9 +89,9 @@ python3 train.py --model_type roberta-{size} --data_type {data_type} --persona_t
 cd prompt_persona_context
 python3 test.py --model_type roberta-{size} --data_type {data_type} --persona_type {persona_type} --persona {persona} --num_of_persona {num_of_persona} --reverse
 ```
-    - size: base or large
-    - data_type: personachat or focus
-    - persona_type: original or revised (It doesn't matter in focus)
-    - persona: simcse or nli or bertscore (recommend: simcse)
-    - num_of_persona: 1 to 5  (recommend: 2)
-    - reverse: option (order of persona sentences)
+- size: base or large
+- data_type: personachat or focus
+- persona_type: original or revised (It doesn't matter in focus)
+- persona: simcse or nli or bertscore (recommend: simcse)
+- num_of_persona: 1 to 5  (recommend: 2)
+- reverse: option (order of persona sentences)
