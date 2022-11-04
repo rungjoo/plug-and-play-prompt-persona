@@ -15,7 +15,7 @@
 - ./dataset/FoCus
 - ./dataset/personachat
 
-## Pretraeind Model
+## Pretrained Model
 - [PersonaChat model]()
 - [Focus model]()
 
