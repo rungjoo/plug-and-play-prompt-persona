@@ -7,9 +7,9 @@
 4. datasets
 5. scipy
 
-## Dataset
-- [PERSONA-CHAT](https://drive.google.com/file/d/1o-Vg4TskJ8deGHjRZIiNEmCgzfzdoF_-/view?usp=sharing): positive 1, negative 19 (given)
-- [Focus](https://drive.google.com/file/d/1jN3G6mihUOZA2V7eGaIXgbFGeGQs2ZUD/view?usp=sharing): positive 1 (given), context negative sampling 2, random negative sampling 17
+## [Dataset](http://naver.me/xHnBDXO3)
+- PERSONA-CHAT: positive 1, negative 19 (given)
+- Focus: positive 1 (given), context negative sampling 2, random negative sampling 17
 
 #### Dataset folder location
 - ./dataset/FoCus
