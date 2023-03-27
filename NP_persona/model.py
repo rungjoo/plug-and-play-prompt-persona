@@ -11,12 +11,12 @@ class MRSModel(nn.Module):
     def __init__(self, model_type, scratch=False):
         super(MRSModel, self).__init__()        
         
-        model_path = os.path.join('/data/project/rw/rung/model', model_type)
+        model_path = model_type
         self.tokenizer = RobertaTokenizer.from_pretrained(model_path)
         
         if scratch:
             print("처음부터 학습")
-            configuration = RobertaConfig.from_pretrained('/data/project/rw/rung/model/roberta-large')
+            configuration = RobertaConfig.from_pretrained(model_path)
             self.model = RobertaModel(configuration)
         else:
             print("PLM 이용")
