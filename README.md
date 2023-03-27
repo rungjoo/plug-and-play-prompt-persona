@@ -25,7 +25,7 @@
 - ./model/NP_persona/roberta-large/model.bin
 - ./model/prompt_finetuning/roberta-{size}/{personachat_type}/model.bin
 
-## NP_focus
+## NP_focus (No Persona)
 **standard response selection model for Focus**
 
 ```bash
