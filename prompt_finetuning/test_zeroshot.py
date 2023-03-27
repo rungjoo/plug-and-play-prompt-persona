@@ -67,7 +67,7 @@ def CalPER(model, prompt_question, sim_model, data_path, args):
         batch_labels = batch_labels.tolist()           
             
         for input_token, input_label in zip(batch_input_token, batch_labels):
-            """ final tokens [sep; persona; context; cls; sep; response] """
+            """ final tokens [sep; context; cls; sep; response] """
             delete_length = input_token.shape[0]-dataset.tokenizer.model_max_length
             if delete_length > 0:
                 concat_token = input_token[delete_length:]
