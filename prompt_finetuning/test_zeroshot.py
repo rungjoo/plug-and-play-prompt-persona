@@ -66,7 +66,7 @@ def CalPER(model, prompt_question, sim_model, data_path, args):
         response_true_probs, persona_true_probs = [], []
         batch_labels = batch_labels.tolist()           
             
-        for max_persona_utt_list, input_token, input_label in zip(max_persona_utts, batch_input_token, batch_labels):
+        for input_token, input_label in zip(batch_input_token, batch_labels):
             """ final tokens [sep; persona; context; cls; sep; response] """
             delete_length = input_token.shape[0]-dataset.tokenizer.model_max_length
             if delete_length > 0:
