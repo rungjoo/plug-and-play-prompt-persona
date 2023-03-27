@@ -27,7 +27,7 @@ def main():
     
     """ model loadings """
     sys.path.append('../NP_persona')
-    modelfile = os.path.join('../model/prompt_finetuning/{model_type}_{args.persona_type}', 'model.bin')
+    modelfile = os.path.join(f'../model/prompt_finetuning/{model_type}_{args.persona_type}', 'model.bin')
     from model import MRSModel
     model = MRSModel(model_type).cuda()    
     model.load_state_dict(torch.load(modelfile))    
