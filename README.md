@@ -77,12 +77,12 @@ python3 train.py --model_type roberta-{size} --data_type {data_type} --persona_t
 - reverse: option (order of persona sentences)
 
 ## prompt_persona_context
-**Zero-shot P5 model**
+**Zero-shot P5 model** (ablation study)
 - test.py: The main test file mentioned in the paper
-- test_no_ground: don't use persona grounding
-- test_no_question: don't use prompt question
-- test_other_question: variant of prompt question
-- test_random_question: random prompt question
+- test_no_ground.py: don't use persona grounding
+- test_no_question.py: don't use prompt question
+- test_other_question.py: variant of prompt question
+- test_random_question.py: random prompt question
 - *dd* means: When SRS is trained with dailydailog
 
 ```bash
