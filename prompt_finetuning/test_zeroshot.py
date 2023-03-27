@@ -14,6 +14,7 @@ from persona_dataset import peronsa_loader
 def main():
     """settings"""
     model_type = args.model_type
+    persona_type = args.persona_type
 
     """log"""
     data_type = args.data_type
@@ -25,8 +26,8 @@ def main():
     logger.setLevel(level=logging.DEBUG)
     
     """ model loadings """
-    sys.path.append(f'../model/prompt_finetuning/roberta-base_{args.persona_type}')
-    modelfile = os.path.join('../model/NP_persona', model_type, 'model.bin')
+    sys.path.append('../NP_persona')
+    modelfile = os.path.join('../model/prompt_finetuning/{model_type}_{args.persona_type}', 'model.bin')
     from model import MRSModel
     model = MRSModel(model_type).cuda()    
     model.load_state_dict(torch.load(modelfile))    
@@ -96,7 +97,7 @@ if __name__ == '__main__':
     """Parameters"""
     parser  = argparse.ArgumentParser(description = "Persona Response selection" )
     
-    parser.add_argument("--model_type", help = "pretrained model", default = 'roberta-large')
+    parser.add_argument("--model_type", help = "pretrained model", default = 'roberta-base')
     
     parser.add_argument("--data_type", help = "personachat", default = 'personachat')
     parser.add_argument("--persona_type", help = "original or revised", default = 'original')
