@@ -23,7 +23,7 @@
 - ./model/NP_focus/roberta-base/model.bin
 - ./model/NP_persona/roberta-base/model.bin
 - ./model/NP_persona/roberta-large/model.bin
-- ./model/prompt_finetuning/roberta-{size}/{personachat_type}/model.bin
+- ./model/prompt_finetuning/roberta-{size}_{personachat_type}/model.bin
 
 ## NP_focus (NP: No Persona)
 **standard response selection model for Focus**
