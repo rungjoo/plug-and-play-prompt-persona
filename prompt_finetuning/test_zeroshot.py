@@ -48,7 +48,7 @@ def main():
     
     test_p1 = CalPER(model, prompt_question, sim_model, test_path, args)
     logger.info('모델: {}, 데이터: {}, persona: {}, test p@1: {}'.\
-            format(model_type, persona_type, persona, test_p1))
+            format(model_type, persona_type, persona_type, test_p1))
     logger.info('test p@1: {}'.format(test_p1))
 
 def CalPER(model, prompt_question, sim_model, data_path, args):
