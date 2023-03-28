@@ -64,6 +64,7 @@ python3 test_perchat.py --model_type roberta-{size} --data_type {data_type} --pe
 - train.py: The main training file mentioned in the paper
 - train_no_ground: don't use persona grounding
 - train_no_question: don't use prompt question
+- test_zeroshot.py: no persona during test
 
 ```bash
 cd prompt_finetuning
@@ -76,8 +77,8 @@ python3 train.py --model_type roberta-{size} --data_type {data_type} --persona_t
 - num_of_persona: 1 to 5  (recommend: 2)
 - reverse: option (order of persona sentences)
 
-## prompt_persona_context
-**Zero-shot P5 model** (ablation study)
+## prompt_persona_context (ablation study)
+**Zero-shot P5 model** 
 - test.py: The main test file mentioned in the paper
 - test_no_ground.py: don't use persona grounding
 - test_no_question.py: don't use prompt question
