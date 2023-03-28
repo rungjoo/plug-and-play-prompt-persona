@@ -23,9 +23,9 @@ def main():
     model_type = args.model_type
     data_type = args.data_type
     if args.scratch:
-        save_path = os.path.join(f'{model_type}_scratch')
+        save_path = os.path.join(f'../model/NP_persona/{model_type}_scratch')
     else:
-        save_path = os.path.join(model_type)
+        save_path = os.path.join(f'../model/NP_persona/{model_type}')
     print("###Save Path### ", save_path)
     
     os.makedirs(save_path, exist_ok=True)

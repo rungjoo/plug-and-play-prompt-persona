@@ -49,6 +49,8 @@ def main():
     
     print('Model Loading!!')
     
+    save_path = f"../model/prompt_finetuning/{model_type}_{persona_type}_no_question"
+    
     """ data loading """
     if data_type == 'personachat':
         train_path = "../dataset/personachat/train_both_" + persona_type + ".json"
@@ -137,7 +139,7 @@ def main():
             test_p1 = CalPER(model, prompt_question, sim_model, test_path, args)
             logger.info('Epoch: {}, 모델: {}, 데이터: {}, persona: {}, number of persona: {}+{}, test p@1: {}'.\
                     format(epoch, model_type, persona_type, persona, num_of_persona, args.reverse, test_p1))
-            SaveModel(model, f"{model_type}_{persona_type}_no_question")
+            SaveModel(model, save_path)
         logger.info('Best test p@1: {}'.format(test_p1))
 
 

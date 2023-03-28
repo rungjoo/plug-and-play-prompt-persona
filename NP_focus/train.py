@@ -21,7 +21,7 @@ from collections import OrderedDict
 def main():
     """save & log path"""
     model_type = args.model_type
-    save_path = os.path.join(model_type)
+    save_path = f'../model/NP_focus/{model_type}'
     print("###Save Path### ", save_path)
     
     os.makedirs(save_path, exist_ok=True)

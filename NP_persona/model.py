@@ -1,4 +1,5 @@
 from transformers import RobertaModel, RobertaTokenizer, RobertaConfig
+from transformers import AutoModel, AutoTokenizer
 import torch
 import numpy as np
 import torch
@@ -12,7 +13,7 @@ class MRSModel(nn.Module):
         super(MRSModel, self).__init__()        
         
         model_path = model_type
-        self.tokenizer = RobertaTokenizer.from_pretrained(model_path)
+        self.tokenizer = AutoTokenizer.from_pretrained(model_path)
         
         if scratch:
             print("처음부터 학습")
@@ -20,7 +21,7 @@ class MRSModel(nn.Module):
             self.model = RobertaModel(configuration)
         else:
             print("PLM 이용")
-            self.model = RobertaModel.from_pretrained(model_path)
+            self.model = AutoModel.from_pretrained(model_path)
         
         self.Wc = nn.Linear(self.model.config.hidden_size, 2) # for 적합도
 

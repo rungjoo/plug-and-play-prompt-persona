@@ -4,6 +4,7 @@ model.bin
 *.tar.gz
 *.sh
 *log*
+*.out
 .ipynb_checkpoints
 */.ipynb_checkpoints/*
 
