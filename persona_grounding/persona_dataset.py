@@ -10,7 +10,7 @@ class peronsa_loader(Dataset):
         with open(data_path, "r") as json_file:
             self.session_json = json.load(json_file)
                 
-        model_path = os.path.join('/data/project/rw/rung/model', model_type)
+        model_path = model_type
         self.tokenizer = RobertaTokenizer.from_pretrained(model_path)        
         
     def __len__(self):

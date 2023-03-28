@@ -11,7 +11,7 @@ class MRSModel(nn.Module):
     def __init__(self, model_type):
         super(MRSModel, self).__init__()        
         
-        model_path = os.path.join('/data/project/rw/rung/model', model_type)
+        model_path = model_type
         self.tokenizer = RobertaTokenizer.from_pretrained(model_path)
         self.model = RobertaModel.from_pretrained(model_path)
         

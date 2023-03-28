@@ -3,7 +3,7 @@
 ## Requirements
 1. Pytorch 1.8
 2. Python 3.6
-3. transformers 4.4.0
+3. transformers>=4.4.0
 4. datasets
 5. scipy
 
