@@ -31,7 +31,9 @@ def main():
 
     """log"""
     data_type = args.data_type
-    log_path = os.path.join(f"{model_type}_{persona_type}.log")
+    save_path = f"../model/prompt_finetuning/{model_type}_{persona_type}"
+    os.makedirs(save_path, exist_ok=True)
+    log_path = os.path.join(save_path, 'train.log')
     fileHandler = logging.FileHandler(log_path)
     
     logger.addHandler(streamHandler)
@@ -51,7 +53,7 @@ def main():
     
     print('Model Loading!!')
     
-    save_path = f"../model/prompt_finetuning/{model_type}_{persona_type}"
+    
     
     """ data loading """
     if data_type == 'personachat':

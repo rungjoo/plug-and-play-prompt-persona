@@ -29,7 +29,9 @@ def main():
 
     """log"""
     data_type = args.data_type
-    log_path = os.path.join(f"{model_type}_{persona_type}_no_question.log")
+    save_path = f"../model/prompt_finetuning/{model_type}_{persona_type}_no_question"
+    os.makedirs(save_path, exist_ok=True)
+    log_path = os.path.join(save_path, 'train.log')
     fileHandler = logging.FileHandler(log_path)
     
     logger.addHandler(streamHandler)
@@ -48,8 +50,6 @@ def main():
     model.load_state_dict(torch.load(modelfile))    
     
     print('Model Loading!!')
-    
-    save_path = f"../model/prompt_finetuning/{model_type}_{persona_type}_no_question"
     
     """ data loading """
     if data_type == 'personachat':
