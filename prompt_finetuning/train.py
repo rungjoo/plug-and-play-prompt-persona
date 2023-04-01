@@ -242,7 +242,7 @@ if __name__ == '__main__':
     parser.add_argument("--data_type", help = "personachat or focus", default = 'personachat')
     parser.add_argument("--persona_type", help = "original or revised", default = 'original')
     parser.add_argument("--persona", type=str, help = "how to refelct persona", choices = ["simcse", "nli", "bertscore"], default = 'simcse')
-    parser.add_argument("--num_of_persona", type=int, help = "how to use persona utterance", default = 1)
+    parser.add_argument("--num_of_persona", type=int, help = "how to use persona utterance", default = 2)
     parser.add_argument('--reverse', help='persona ordering', action="store_true")
             
     args = parser.parse_args()

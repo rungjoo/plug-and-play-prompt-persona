@@ -39,10 +39,10 @@ python3 train.py --model_type roberta-{size} --epoch 10
 
 ```bash
 cd NP_focus
-python3 train.py --model_type roberta-{size} --data_type {data_type} --epoch 10
+python3 train.py --model_type roberta-{size} --persona_type {persona_type} --epoch 10
 ```
 - size: base or large
-- data_type: original or revised
+- persona_type: original or revised
 
 ## SoP (Similarity of Persona)
 **Zero-shot baseline**
@@ -51,10 +51,10 @@ python3 train.py --model_type roberta-{size} --data_type {data_type} --epoch 10
 
 ```bash
 cd SoP
-python3 test_perchat.py --model_type roberta-{size} --data_type {data_type} --persona simcse --weight {weight} --agg max
+python3 test_perchat.py --model_type roberta-{size} --persona_type {persona_type} --persona simcse --weight {weight} --agg max
 ```
 - size: base or large
-- data_type: original or revised (It doesn't matter in focus))
+- persona_type: original or revised (It doesn't matter in focus))
 - weight
     - 0.5 for original persona and Focus
     - 0.05 for revised persona

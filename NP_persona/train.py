@@ -21,7 +21,7 @@ from collections import OrderedDict
 def main():
     """save & log path"""
     model_type = args.model_type
-    data_type = args.data_type
+    persona_type = args.persona_type
     if args.scratch:
         save_path = os.path.join(f'../model/NP_persona/{model_type}_scratch')
     else:
@@ -41,9 +41,9 @@ def main():
     model.train()
         
     """dataset Loading"""
-    train_path = "../dataset/personachat/train_both_" + data_type + ".json"
-    dev_path = "../dataset/personachat/valid_both_" + data_type + ".json"
-    test_path = "../dataset/personachat/test_both_" + data_type + ".json"
+    train_path = "../dataset/personachat/train_both_" + persona_type + ".json"
+    dev_path = "../dataset/personachat/valid_both_" + persona_type + ".json"
+    test_path = "../dataset/personachat/test_both_" + persona_type + ".json"
     
     batch_size = args.batch
     logger.info("###################")
@@ -146,13 +146,13 @@ if __name__ == '__main__':
     
     """Parameters"""
     parser  = argparse.ArgumentParser(description = "Response selection" )
-    parser.add_argument("--epoch", type=int, help = 'training epohcs', default = 5) # 12 for iemocap
+    parser.add_argument("--epoch", type=int, help = 'training epohcs', default = 10) # 12 for iemocap
     parser.add_argument("--norm", type=int, help = "max_grad_norm", default = 10)
     parser.add_argument("--lr", type=float, help = "learning rate", default = 1e-6) # 1e-5
     parser.add_argument("--batch", type=int, help = "training batch size", default = 1) # base
     
-    parser.add_argument("--model_type", help = "pretrained model", default = 'roberta-large')
-    parser.add_argument("--data_type", help = "original or revised", default = 'original')
+    parser.add_argument("--model_type", help = "pretrained model", default = 'roberta-base')
+    parser.add_argument("--persona_type", help = "original or revised", default = 'original')
     parser.add_argument('--scratch', help='training from scratch', action="store_true")
 #     parser.add_argument("--negative_numbers", type=int, help = "how much?", default = 1)
 #     parser.add_argument("--negative_context_numbers", type=int, help = "negative context numbers in whole candidates", default = 0)
