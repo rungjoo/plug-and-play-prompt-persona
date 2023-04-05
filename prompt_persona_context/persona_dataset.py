@@ -3,7 +3,7 @@ from torch.utils.data import Dataset, DataLoader
 import json
 import pdb, os
 import random
-from transformers import RobertaTokenizer
+from transformers import RobertaTokenizer, AutoTokenizer
     
 class peronsa_loader(Dataset):
     def __init__(self, data_path, model_type):
@@ -11,7 +11,7 @@ class peronsa_loader(Dataset):
             self.session_json = json.load(json_file)
                 
         model_path = model_type
-        self.tokenizer = RobertaTokenizer.from_pretrained(model_path)        
+        self.tokenizer = AutoTokenizer.from_pretrained(model_path)        
         
     def __len__(self):
         return len(self.session_json)

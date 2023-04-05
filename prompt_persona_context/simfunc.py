@@ -7,7 +7,7 @@ from datasets import load_metric
 class SimCSE(nn.Module):
     def __init__(self):
         super(SimCSE, self).__init__()  
-        model_name = "sup-simcse-bert-base-uncased"
+        model_name = "princeton-nlp/sup-simcse-bert-base-uncased"
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.model = AutoModel.from_pretrained(model_name)
         
