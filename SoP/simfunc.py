@@ -7,8 +7,9 @@ from datasets import load_metric
 class SimCSE(nn.Module):
     def __init__(self):
         super(SimCSE, self).__init__()  
-        self.tokenizer = AutoTokenizer.from_pretrained("/data/project/rw/rung/model/sup-simcse-bert-base-uncased")
-        self.model = AutoModel.from_pretrained("/data/project/rw/rung/model/sup-simcse-bert-base-uncased")
+        model_name = "princeton-nlp/sup-simcse-bert-base-uncased"
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self.model = AutoModel.from_pretrained(model_name)
         
     def forward(self, response, personas):
         """
@@ -39,7 +40,7 @@ class SimCSE(nn.Module):
 class senBERT(nn.Module):
     def __init__(self):
         super(senBERT, self).__init__()  
-        model_path = '/data/project/rw/rung/model/bert-base-nli-mean-tokens'
+        model_path = 'sentence-transformers/bert-base-nli-mean-tokens'
         self.tokenizer = AutoTokenizer.from_pretrained(model_path)
         self.model = AutoModel.from_pretrained(model_path)
         

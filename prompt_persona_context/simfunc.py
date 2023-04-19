@@ -41,7 +41,7 @@ class SimCSE(nn.Module):
 class senBERT(nn.Module):
     def __init__(self):
         super(senBERT, self).__init__()  
-        model_path = '/data/project/rw/rung/model/bert-base-nli-mean-tokens'
+        model_path = 'sentence-transformers/bert-base-nli-mean-tokens'
         self.tokenizer = AutoTokenizer.from_pretrained(model_path)
         self.model = AutoModel.from_pretrained(model_path)
         
