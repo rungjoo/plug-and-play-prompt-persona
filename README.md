@@ -7,7 +7,8 @@
 4. datasets
 5. scipy
 
-## [Dataset](http://naver.me/xHnBDXO3)
+## Dataset
+- [download link](http://naver.me/xHnBDXO3)
 - PERSONA-CHAT: positive 1, negative 19 (given)
 - Focus: positive 1 (given), context negative sampling 2, random negative sampling 17
 
@@ -16,8 +17,7 @@
 - ./dataset/personachat
 
 ## Pretrained Model
-- [PersonaChat model]()
-- [Focus model]()
+- [download_link](http://naver.me/xuCSFriH)
 
 #### Model folder location
 - ./model/NP_focus/roberta-base/model.bin
