@@ -5,6 +5,7 @@ model.bin
 *.sh
 *log*
 *.out
+*.vec
 .ipynb_checkpoints
 */.ipynb_checkpoints/*
 

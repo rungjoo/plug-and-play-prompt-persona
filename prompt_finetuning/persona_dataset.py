@@ -11,7 +11,9 @@ class peronsa_loader(Dataset):
             self.session_json = json.load(json_file)
                 
         model_path = model_type
-        self.tokenizer = AutoTokenizer.from_pretrained(model_path)        
+        self.tokenizer = AutoTokenizer.from_pretrained(model_path)
+        if self.tokenizer.model_max_length > 3000:
+            self.tokenizer.model_max_length = 512        
         
     def __len__(self):
         return len(self.session_json)

@@ -16,9 +16,7 @@ from simfunc import SimCSE, senBERT, BERTScore
 def main():
     """settings"""
     model_type = args.model_type
-    persona = args.persona # simcse
     persona_type = args.persona_type # original
-    num_of_persona = args.num_of_persona
     if args.reverse:
         print("Input: [row persona -> high persona -> context]")
     else:
@@ -62,13 +60,6 @@ def main():
     train_loader = DataLoader(train_dataset, batch_size=1, shuffle=False, num_workers=4, collate_fn=train_dataset.collate_fn)
     
     """similarity persona"""
-#     if persona == "simcse":
-#         sim_model = SimCSE().cuda()
-#     elif persona == "nli":
-#         sim_model = senBERT().cuda()
-#     elif persona == "bertscore":
-#         sim_model = BERTScore()    
-#     sim_model.eval()
     sim_model = None
     
     """ 하이퍼 파라미터들 """
@@ -88,13 +79,7 @@ def main():
         for i_batch, (batch_input_token, batch_labels, batch_personas, batch_response) in enumerate(tqdm(train_loader, desc='train_iteration')):
             batch_labels = batch_labels.cuda()
 
-            if persona in ["simcse", "nli", "bertscore"]:
-                cand_persona_scores, max_persona_utts = [], []
-                for personas, responses in zip(batch_personas, batch_response): # batch = 1
-                    for response in responses:                    
-                        persona_scores = [] # sim_model(response, personas)
-                        high_persona_utts = high_persona(persona_scores, personas, args.num_of_persona, args.reverse)
-                        max_persona_utts.append(high_persona_utts)                    
+            max_persona_utts = personas # no ground
 
             batch_persona_logits = []
             for max_persona_utt_list, input_token, input_label in zip(max_persona_utts, batch_input_token, batch_labels):            
@@ -133,14 +118,14 @@ def main():
             optimizer.zero_grad()
 
         dev_p1 = CalPER(model, prompt_question, sim_model, dev_path, args)
-        logger.info('모델: {}, 데이터: {}, persona: {}, number of persona: {}+{}, dev p@1: {}'.\
-                format(model_type, persona_type, persona, num_of_persona, args.reverse, dev_p1))
+        logger.info('모델: {}, 데이터: {}, reverse: {}, dev p@1: {}'.\
+                format(model_type, persona_type, args.reverse, dev_p1))
 
         if dev_p1 > best_dev_p1:
             best_dev_p1 = dev_p1
             test_p1 = CalPER(model, prompt_question, sim_model, test_path, args)
-            logger.info('Epoch: {}, 모델: {}, 데이터: {}, persona: {}, number of persona: {}+{}, test p@1: {}'.\
-                    format(epoch, model_type, persona_type, persona, num_of_persona, args.reverse, test_p1))
+            logger.info('Epoch: {}, 모델: {}, 데이터: {}, reverse: {}, test p@1: {}'.\
+                    format(epoch, model_type, persona_type, args.reverse, test_p1))
             SaveModel(model, save_path)
         logger.info('Best test p@1: {}'.format(test_p1))
 
@@ -158,10 +143,6 @@ def CELoss(pred_outs, labels):
     loss = nn.CrossEntropyLoss()
     loss_val = loss(pred_outs, labels)
     return loss_val
-
-def high_persona(persona_scores, personas, k, reverse=False):
-    high_persona_utts = personas[:k]
-    return high_persona_utts  
     
 def CalPER(model, prompt_question, sim_model, data_path, args):
     model.eval()
@@ -180,13 +161,7 @@ def CalPER(model, prompt_question, sim_model, data_path, args):
         response_true_probs, persona_true_probs = [], []
         batch_labels = batch_labels.tolist()
             
-        if persona in ["simcse", "nli", "bertscore"]:
-            cand_persona_scores, max_persona_utts = [], []
-            for personas, responses in zip(batch_personas, batch_response): # batch = 1
-                for response in responses:                    
-                    persona_scores = [] # sim_model(response, personas)
-                    high_persona_utts = high_persona(persona_scores, personas, args.num_of_persona, args.reverse)
-                    max_persona_utts.append(high_persona_utts)                    
+        max_persona_utts = personas # no ground                  
             
         for max_persona_utt_list, input_token, input_label in zip(max_persona_utts, batch_input_token, batch_labels):
             """ persona tokens """
@@ -233,8 +208,6 @@ if __name__ == '__main__':
     
     parser.add_argument("--data_type", help = "personachat or focus", default = 'personachat')
     parser.add_argument("--persona_type", help = "original or revised", default = 'original')
-    parser.add_argument("--persona", type=str, help = "how to refelct persona", choices = ["simcse", "nli", "bertscore"], default = 'simcse')
-    parser.add_argument("--num_of_persona", type=int, help = "how to use persona utterance", default = 1)
     parser.add_argument('--reverse', help='persona ordering', action="store_true")
             
     args = parser.parse_args()

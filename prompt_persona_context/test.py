@@ -10,7 +10,7 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 from torch.utils.data import Dataset, DataLoader
 from persona_dataset import peronsa_loader
-from simfunc import SimCSE, senBERT, BERTScore
+from simfunc import SimCSE, senBERT, BERTScore, BLEUScore
 
 def main():
     """settings"""
@@ -32,20 +32,24 @@ def main():
 
     """log"""
     data_type = args.data_type
-    log_path = os.path.join(data_type+'_test.log'+persona)
+    log_path = f"{data_type}_{persona}_test.log"
     fileHandler = logging.FileHandler(log_path)
     
     logger.addHandler(streamHandler)
     logger.addHandler(fileHandler)
     logger.setLevel(level=logging.DEBUG)
     
-    """model loadings"""        
+    """model loadings"""
+    if args.scratch:
+        model_save = f"{model_type}_scratch"
+    else:
+        model_save = model_type
     if data_type == "personachat":
-        sys.path.append('../NP_persona')
-        modelfile = os.path.join('../model/NP_persona', model_type, 'model.bin')
+        sys.path.append('../NP_persona')        
+        modelfile = os.path.join('../model/NP_persona', model_save, 'model.bin')
     else:
         sys.path.append('../NP_focus')
-        modelfile = os.path.join('../model/NP_focus', model_type, 'model.bin')
+        modelfile = os.path.join('../model/NP_focus', model_save, 'model.bin')
     from model import MRSModel
     model = MRSModel(model_type).cuda()    
     model.load_state_dict(torch.load(modelfile))    
@@ -79,11 +83,15 @@ def CalPER(model, prompt_question, args):
     """similarity persona"""
     if persona == "simcse":
         sim_model = SimCSE().cuda()
+        sim_model.eval()
     elif persona == "nli":
         sim_model = senBERT().cuda()
+        sim_model.eval()
     elif persona == "bertscore":
         sim_model = BERTScore()
-    sim_model.eval()
+        sim_model.eval()
+    elif persona == 'bleuscore':
+        sim_model = BLEUScore()    
         
     """dataset"""
     if data_type == 'personachat':
@@ -101,14 +109,14 @@ def CalPER(model, prompt_question, args):
         response_true_probs, persona_true_probs = [], []
         batch_labels = batch_labels.tolist()
             
-        if persona in ["simcse", "nli", "bertscore"]:
+        if persona in ["simcse", "nli", "bertscore", "bleuscore"]:
             cand_persona_scores, max_persona_utts = [], []
             for personas, responses in zip(batch_personas, batch_response): # batch = 1
                 for response in responses:                    
                     persona_scores = sim_model(response, personas)
                     high_persona_utts = high_persona(persona_scores, personas, args.num_of_persona, args.reverse)
-                    max_persona_utts.append(high_persona_utts)                    
-            
+                    max_persona_utts.append(high_persona_utts)
+        
         for max_persona_utt_list, input_token, input_label in zip(max_persona_utts, batch_input_token, batch_labels):
             """ cls token 위치 찾기 """
             token_id_list = input_token.tolist()
@@ -185,9 +193,10 @@ if __name__ == '__main__':
     
     parser.add_argument("--data_type", help = "personachat or focus", default = 'personachat')
     parser.add_argument("--persona_type", help = "original or revised", default = 'original')
-    parser.add_argument("--persona", type=str, help = "how to refelct persona", choices = ["simcse", "nli", "bertscore"], default = 'simcse')    
+    parser.add_argument("--persona", type=str, help = "how to refelct persona", choices = ["simcse", "nli", "bertscore", "bleuscore"], default = 'simcse')    
     parser.add_argument("--num_of_persona", type=int, help = "how to use persona utterance", default = 1)
     parser.add_argument('--reverse', help='persona ordering', action="store_true")
+    parser.add_argument('--scratch', help='training from scratch', action="store_true")
             
     args = parser.parse_args()
     

@@ -53,8 +53,6 @@ def main():
     
     print('Model Loading!!')
     
-    
-    
     """ data loading """
     if data_type == 'personachat':
         train_path = "../dataset/personachat/train_both_" + persona_type + ".json"

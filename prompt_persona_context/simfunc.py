@@ -3,6 +3,7 @@ import torch.nn as nn
 from scipy.spatial.distance import cosine
 from transformers import AutoModel, AutoTokenizer
 from datasets import load_metric
+from nltk.translate.bleu_score import sentence_bleu
 
 class SimCSE(nn.Module):
     def __init__(self):
@@ -88,3 +89,17 @@ class BERTScore(nn.Module):
         f1 = results['f1']
         
         return f1
+    
+class BLEUScore():
+    def __init__(self):
+        pass
+    def __call__(self, response, personas):
+        response = response.split(" ")
+        
+        scores = []
+        for persona in personas:
+            persona = persona.split(" ")
+            score = sentence_bleu([response], persona, weights=(1.0, 0, 0, 0))
+            scores.append(score)
+        
+        return scores
