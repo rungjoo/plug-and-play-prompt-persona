@@ -38,7 +38,7 @@ python3 train.py --model_type roberta-{size} --epoch 10
 **standard response selection model for PERSONA-CHAT**
 
 ```bash
-cd NP_focus
+cd NP_persona
 python3 train.py --model_type roberta-{size} --persona_type {persona_type} --epoch 10
 ```
 - size: base or large
