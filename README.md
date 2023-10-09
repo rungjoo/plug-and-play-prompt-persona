@@ -1,6 +1,6 @@
 # P5: Plug-and-Play Persona Prompting for Personalized Response Selection
 ![test](./image/test.png)
-The overall flow of our test phase
+The overall flow of P5 model.
 
 ## Requirements
 1. Pytorch 1.8
