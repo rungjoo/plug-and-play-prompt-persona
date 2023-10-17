@@ -98,3 +98,13 @@ python3 test.py --model_type roberta-{size} --data_type {data_type} --persona_ty
 - persona: simcse or nli or bertscore (recommend: simcse)
 - num_of_persona: 1 to 5  (recommend: 2)
 - reverse: option (order of persona sentences)
+
+## Citation
+```bibtex
+@article{lee2023p5,
+  title={P5: Plug-and-Play Persona Prompting for Personalized Response Selection},
+  author={Lee, Joosung and Oh, Minsik and Lee, Donghun},
+  journal={arXiv preprint arXiv:2310.06390},
+  year={2023}
+}
+```
